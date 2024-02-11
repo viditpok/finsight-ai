@@ -5,10 +5,10 @@ from openai import OpenAI
 import os
 
 
-openai.api_key = os.environ['openaiapi']
+openai.api_key = os.environ.get('openaiapi', 'None')
 
 def find_company(article):
-    client = OpenAI(api_key=os.environ['openaiapi'])
+    client = OpenAI(api_key=os.environ.get('openaiapi', 'None'))
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
