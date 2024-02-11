@@ -1,0 +1,8 @@
+taipy
+taipy-gui
+taipy-core
+pymongo
+transformers
+requests
+seaborn
+openai
