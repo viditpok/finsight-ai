@@ -1,6 +1,3 @@
-taipy
-taipy-gui
-taipy-core
 pymongo
 transformers
 requests

@@ -5,7 +5,7 @@ from openai import OpenAI
 import os
 
 
-openai.api_key = os.environ.get('openaiapi')
+openai.api_key = os.environ.get('API_KEY')
 
 def find_company(article):
     client = OpenAI(api_key=os.environ.get('openaiapi'))
