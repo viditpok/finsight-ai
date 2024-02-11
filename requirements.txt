@@ -6,3 +6,4 @@ transformers
 requests
 seaborn
 openai
+streamlit
