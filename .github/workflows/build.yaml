@@ -1,0 +1,27 @@
+name: API Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+        
+    - name: Run script using API
+      env:
+        API_KEY: ${{ secrets.openaiapi }}
+      run: |
+        python3 my_streamlit.py
