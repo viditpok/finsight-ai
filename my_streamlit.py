@@ -3,7 +3,7 @@ import pandas as pd
 from mongo import client  # Importing the MongoClient connection from mongo.py
 from aggregator import autocorrect_Ticker, fixed_sentiment
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyArrowPatch
+from matplotlib.patches import FancyArrowPatch, PathPatch
 import numpy as np
 
 # Set page config to use a wide layout
@@ -112,40 +112,43 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 
 def plot_arrow(avg_sentiment_score):
-    fig, ax = plt.subplots(figsize=(2, 2))
+    fig, ax = plt.subplots(figsize=(3, 2))
+    # Make the background of the figure transparent
+    fig.patch.set_alpha(0.0)
+    # Make the background of the axes (plot area) transparent
+    ax.set_facecolor("none")
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     
-    # Determine the color, direction, and label based on avg_sentiment_score
     if avg_sentiment_score > 0:
         color = 'green'
-        arrowstyle = 'simple,head_width=2,head_length=2,tail_width=1'
-        direction = 'upward'
-        dx, dy = 0, 0.3
-        x, y = 0.2, 0.5  # Arrow position
+        direction_text = 'upward'
+        arrow_direction = (0, 0.2)
     elif avg_sentiment_score < 0:
         color = 'red'
-        arrowstyle = 'simple,head_width=2,head_length=2,tail_width=1'
-        direction = 'downward'
-        dx, dy = 0, -0.3
-        x, y = 0.2, 0.5  # Arrow position
+        direction_text = 'downward'
+        arrow_direction = (0, -0.2)
     else:
         color = 'grey'
-        arrowstyle = 'simple,head_width=1,head_length=1,tail_width=0.5'
-        direction = 'stable'
-        dx, dy = 0.3, 0
-        x, y = 0.2, 0.5  # Arrow position
+        direction_text = 'stable'
+        arrow_direction = (0.2, 0)
+    
+    # Large text for the score
+    ax.text(0.5, 0.6, f"{direction_text}", ha='center', va='center', fontsize=20, backgroundcolor='none', color='white')
+
+    # Smaller text for the direction and p value
+    direction_text_full = f"{abs(avg_sentiment_score):.2f}"
+    ax.text(0.6, 0.25, direction_text_full, ha='center', va='center', fontsize=12, color=color, backgroundcolor='none')
 
     # Create the arrow
-    arrow = FancyArrowPatch((x, y), (x + dx, y + dy),
-                            arrowstyle=arrowstyle, color=color, mutation_scale=10)
+    arrow_start = (0.4, 0.24) if avg_sentiment_score != 0 else (0.4, 0.2)
+    if avg_sentiment_score < 0:
+        arrow_start = (0.4, 0.32)
+    elif avg_sentiment_score > 0:
+        arrow_start = (0.4, 0.16)
+    arrow = FancyArrowPatch(arrow_start, (arrow_start[0] + arrow_direction[0], arrow_start[1] + arrow_direction[1]),
+                            arrowstyle='-|>', color=color, mutation_scale=20)
     ax.add_patch(arrow)
-
-    # Add direction text above the arrow
-    ax.text(0.6, 0.7, direction, ha='center', va='center', fontsize=20, color=color)
-
-    # Add sentiment score text below the arrow on the same line
-    ax.text(0.5 + dx, 0.5 + dy, f"  {avg_sentiment_score:.1f}", ha='left', va='center', fontsize=6)
 
     # Remove the axis for a cleaner look
     plt.axis('off')
@@ -207,10 +210,8 @@ if user_input_company_name:
                 stock_direction_prediction = predict_stock_direction(articles)
                 
                 st.markdown("""
-                    <div style="font-family: 'Josefin Sans', sans-serif; text-align: center; margin-top: 20px; font-size: 24px;">Stock Direction Prediction</div>
+                    <div style="font-family: 'Josefin Sans', sans-serif; text-align: center; margin-top: 20px;margin-bottom: -50px; font-size: 24px;">Stock Direction Prediction</div>
                 """, unsafe_allow_html=True)
-                
-                st.write(stock_direction_prediction)
                 
                 # Display the arrow plot
                 fig = plot_arrow(avg_sentiment_score)
