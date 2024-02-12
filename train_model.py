@@ -12,11 +12,9 @@ import time
 import datetime
 
 
-# Function to preprocess the data
 def preprocess_data(file_path, encoding="ISO-8859-1"):
     df = pd.read_csv(file_path, encoding=encoding, header=None, names=["label", "text"])
 
-    # Map labels to -1, 0, 1 for negative, neutral, positive respectively
     df["label"] = df["label"].map({"negative": -1, "neutral": 0, "positive": 1})
 
     sentences = df["text"].values
@@ -41,9 +39,7 @@ def preprocess_data(file_path, encoding="ISO-8859-1"):
 
     input_ids = torch.cat(input_ids, dim=0)
     attention_masks = torch.cat(attention_masks, dim=0)
-    labels = torch.tensor(
-        labels, dtype=torch.float
-    )  # Ensure labels are float for regression
+    labels = torch.tensor(labels, dtype=torch.float)
 
     train_inputs, validation_inputs, train_masks, validation_masks = train_test_split(
         input_ids, attention_masks, random_state=2018, test_size=0.1
@@ -62,7 +58,6 @@ def preprocess_data(file_path, encoding="ISO-8859-1"):
     )
 
 
-# Specify the correct path to your dataset
 file_path = "dataset_data.csv"
 (
     train_inputs,
@@ -74,24 +69,22 @@ file_path = "dataset_data.csv"
 ) = preprocess_data(file_path, "ISO-8859-1")
 
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-model = BertForSequenceClassification.from_pretrained(
-    "bert-base-uncased", num_labels=1
-)  # num_labels=1 for regression
+model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=1)
 
-# Tell PyTorch to use the GPU if available
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
-# Set up the optimizer
+
 optimizer = AdamW(model.parameters(), lr=2e-5, eps=1e-8)
 
-# Create the learning rate scheduler
-total_steps = len(train_inputs) * 4  # Number of epochs times number of batches
+
+total_steps = len(train_inputs) * 4
 scheduler = get_linear_schedule_with_warmup(
     optimizer, num_warmup_steps=0, num_training_steps=total_steps
 )
 
-# Convert to TensorDataset and create DataLoader
+
 train_dataset = TensorDataset(train_inputs, train_masks, train_labels)
 validation_dataset = TensorDataset(
     validation_inputs, validation_masks, validation_labels
@@ -105,7 +98,6 @@ validation_dataloader = DataLoader(
 )
 
 
-# Define the training loop
 def format_time(elapsed):
     return str(datetime.timedelta(seconds=int(round((elapsed)))))
 
@@ -114,7 +106,7 @@ loss_values = []
 epochs = 4
 
 for epoch_i in range(0, epochs):
-    # Perform one full pass over the training set
+
     print("")
     print("======== Epoch {:} / {:} ========".format(epoch_i + 1, epochs))
     print("Training...")
@@ -125,12 +117,11 @@ for epoch_i in range(0, epochs):
     model.train()
 
     for step, batch in enumerate(train_dataloader):
-        # Progress update every 40 batches.
+
         if step % 40 == 0 and not step == 0:
-            # Calculate elapsed time in minutes.
+
             elapsed = format_time(time.time() - t0)
 
-            # Report progress.
             print(
                 "  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.".format(
                     step, len(train_dataloader), elapsed
@@ -154,16 +145,13 @@ for epoch_i in range(0, epochs):
         total_loss += loss.item()
         loss.backward()
 
-        # Clip the norm of the gradients to 1.0 to prevent "exploding gradients"
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
         optimizer.step()
         scheduler.step()
 
-    # Calculate the average loss over the training data.
     avg_train_loss = total_loss / len(train_dataloader)
 
-    # Store the loss value for plotting the learning curve.
     loss_values.append(avg_train_loss)
 
     print("")
@@ -173,9 +161,6 @@ for epoch_i in range(0, epochs):
 print("")
 print("Training complete!")
 
-# Save the model
+
 model.save_pretrained("./model_save")
 tokenizer.save_pretrained("./model_save")
-
-# After saving the model, you can load it using the `from_pretrained` method
-# model = BertForSequenceClassification.from_pretrained("./model_save")

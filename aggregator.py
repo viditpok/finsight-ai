@@ -5,10 +5,11 @@ from openai import OpenAI
 import os
 
 
-openai.api_key = os.environ.get('API_KEY')
+openai.api_key = os.environ.get("API_KEY")
+
 
 def find_company(article):
-    client = OpenAI(api_key=os.environ.get('API_KEY'))
+    client = OpenAI(api_key=os.environ.get("API_KEY"))
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -66,5 +67,5 @@ def fixed_sentiment(dicti):
 
         days_diff = time_diff.total_seconds() / (60 * 60 * 24)
         days_diff = max(1, days_diff)
-        
-        item["sentiment_score"] /= (math.log2(days_diff + 1) + 1e-3)
+
+        item["sentiment_score"] /= math.log2(days_diff + 1) + 1e-3

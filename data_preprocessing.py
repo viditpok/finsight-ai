@@ -3,25 +3,23 @@ from transformers import BertTokenizer
 from sklearn.model_selection import train_test_split
 import torch
 
-# Path to your dataset
+
 file_path = "dataset_data.csv"
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
 
 def preprocess_data(file_path, encoding):
     df = pd.read_csv(file_path, encoding=encoding)
-    sentences = df.iloc[:, 1].values  # Assuming text data is in the second column
+    sentences = df.iloc[:, 1].values
 
-    # Convert labels to numeric values
-    labels = df.iloc[:, 0].values  # Assuming labels are in the first column
+    labels = df.iloc[:, 0].values
     label_dict = {
         "negative": 0,
         "neutral": 1,
         "positive": 2,
-    }  # Update with your actual labels
-    labels = [label_dict[label] for label in labels]  # Convert labels to integers
+    }
+    labels = [label_dict[label] for label in labels]
 
-    # Tokenize the sentences
     input_ids = []
     attention_masks = []
 
@@ -38,12 +36,10 @@ def preprocess_data(file_path, encoding):
         input_ids.append(encoded_dict["input_ids"])
         attention_masks.append(encoded_dict["attention_mask"])
 
-    # Convert lists into tensors
     input_ids = torch.cat(input_ids, dim=0)
     attention_masks = torch.cat(attention_masks, dim=0)
     labels = torch.tensor(labels)
 
-    # Split the dataset into training and validation sets
     train_inputs, validation_inputs, train_masks, validation_masks = train_test_split(
         input_ids, attention_masks, random_state=2018, test_size=0.1
     )
@@ -61,7 +57,6 @@ def preprocess_data(file_path, encoding):
     )
 
 
-# Use the preprocess_data function with the determined encoding
 (
     train_inputs,
     train_labels,

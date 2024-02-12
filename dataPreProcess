@@ -3,16 +3,16 @@ from transformers import BertTokenizer
 from sklearn.model_selection import train_test_split
 import torch
 
-# Path to your dataset
-file_path = 'dataset_data.csv'
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+
+file_path = "dataset_data.csv"
+tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+
 
 def preprocess_data(file_path):
     df = pd.read_csv(file_path)
-    sentences = df['text'].values
-    labels = df['label'].values
+    sentences = df["text"].values
+    labels = df["label"].values
 
-    # Tokenize the sentences
     input_ids = []
     attention_masks = []
 
@@ -23,20 +23,37 @@ def preprocess_data(file_path):
             max_length=64,
             pad_to_max_length=True,
             return_attention_mask=True,
-            return_tensors='pt',
+            return_tensors="pt",
         )
-        input_ids.append(encoded_dict['input_ids'])
-        attention_masks.append(encoded_dict['attention_mask'])
+        input_ids.append(encoded_dict["input_ids"])
+        attention_masks.append(encoded_dict["attention_mask"])
 
-    # Convert lists into tensors
     input_ids = torch.cat(input_ids, dim=0)
     attention_masks = torch.cat(attention_masks, dim=0)
     labels = torch.tensor(labels)
 
-    # Split the dataset into training and validation sets
-    train_inputs, validation_inputs, train_masks, validation_masks = train_test_split(input_ids, attention_masks, random_state=2018, test_size=0.1)
-    train_labels, validation_labels = train_test_split(labels, random_state=2018, test_size=0.1)
+    train_inputs, validation_inputs, train_masks, validation_masks = train_test_split(
+        input_ids, attention_masks, random_state=2018, test_size=0.1
+    )
+    train_labels, validation_labels = train_test_split(
+        labels, random_state=2018, test_size=0.1
+    )
 
-    return train_inputs, train_labels, train_masks, validation_inputs, validation_labels, validation_masks
+    return (
+        train_inputs,
+        train_labels,
+        train_masks,
+        validation_inputs,
+        validation_labels,
+        validation_masks,
+    )
 
-train_inputs, train_labels, train_masks, validation_inputs, validation_labels, validation_masks = preprocess_data(file_path)
+
+(
+    train_inputs,
+    train_labels,
+    train_masks,
+    validation_inputs,
+    validation_labels,
+    validation_masks,
+) = preprocess_data(file_path)
